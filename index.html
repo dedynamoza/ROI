@@ -14,7 +14,7 @@
       --primary: #1976d2;
       --primary-dark: #0d47a1;
       --accent: #00bcd4;
-      --bg: #f4f6f8;
+      --bg: #0576e6;
       --text: #1e293b;
       --border: #e2e8f0;
       --danger: #e53935;
@@ -128,19 +128,66 @@
     }
     
     /* Specific column sizing */
-    #hardwareTable th:nth-child(1),
-    #hardwareTable td:nth-child(1),
-    #serviceTable th:nth-child(1),
-    #serviceTable td:nth-child(1) {
-      width: 40px;
-    }
-    
-    #hardwareTable th:nth-child(6),
-    #hardwareTable td:nth-child(6),
-    #serviceTable th:nth-child(6),
-    #serviceTable td:nth-child(6) {
-      width: 80px;
-    }
+#hardwareTable th:nth-child(1),
+#hardwareTable td:nth-child(1),
+#serviceTable th:nth-child(1),
+#serviceTable td:nth-child(1) {
+  width: 5%;   /* Kolom No */
+}
+
+#hardwareTable th:nth-child(2),
+#hardwareTable td:nth-child(2),
+#serviceTable th:nth-child(2),
+#serviceTable td:nth-child(2) {
+  width: 40%;  /* Item Description */
+}
+
+#hardwareTable th:nth-child(3),
+#hardwareTable td:nth-child(3),
+#serviceTable th:nth-child(3),
+#serviceTable td:nth-child(3) {
+  width: 10%;  /* Qty */
+}
+
+#hardwareTable th:nth-child(4),
+#hardwareTable td:nth-child(4),
+#serviceTable th:nth-child(4),
+#serviceTable td:nth-child(4) {
+  width: 15%;  /* Unit Price */
+}
+
+#hardwareTable th:nth-child(5),
+#hardwareTable td:nth-child(5),
+#serviceTable th:nth-child(5),
+#serviceTable td:nth-child(5) {
+  width: 15%;  /* Ext Price */
+}
+
+#hardwareTable th:nth-child(6),
+#hardwareTable td:nth-child(6),
+#serviceTable th:nth-child(6),
+#serviceTable td:nth-child(6) {
+  width: 10%;  /* Action */
+}
+/* Agar input dan select tidak melewati batas cell */
+#hardwareTable input,
+#hardwareTable select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9fafb;
+  font-size: 14px;
+}
+
+#hardwareTable input:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+}
+
+
     
     /* === BUTTONS === */
     .btn {
@@ -246,6 +293,7 @@
       border-radius: 8px;
       font-size: 14px;
       animation: fadeIn 0.3s ease;
+      width: 45%;
     }
     
     @keyframes fadeIn {
@@ -323,29 +371,29 @@
 
   <div class="row" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
   
-  <!-- Kiri -->
-  <div class="form-group" style="width:30%; text-align:left;">
-    <label for="customerName" style="display:block; font-weight:bold; margin-bottom:2px;">
-      Customer Name
-    </label>
-    <input type="text" id="customerName" placeholder="Enter customer name" style="width:100%;">
-  </div>
-
-  <!-- Tengah -->
-  <div class="form-group" style="width:30%; text-align:center;">
-    <label for="projectDesc" style="display:block; font-weight:bold; margin-bottom:2px;">
-      Project Description
-    </label>
-    <input type="text" id="projectDesc" placeholder="Enter project description" style="width:80%; margin:auto; display:block;">
-  </div>
-
-  <!-- Kanan -->
-  <div class="form-group" style="width:30%; text-align:right;">
-    <label for="date" style="display:block; font-weight:bold; margin-bottom:2px; text-align:right;">
-      Date
-    </label>
-    <input type="date" id="date" style="width:80%;">
-  </div>
+    <!-- Kiri -->
+    <div class="form-group" style="width:30%; text-align:center;">
+      <label for="customerName" style="display:block; font-weight:bold; margin-bottom:2px;">
+        Customer Name
+      </label>
+      <input type="text" id="customerName" placeholder="Enter customer name" style="width:100%;">
+    </div>
+  
+    <!-- Tengah -->
+    <div class="form-group" style="width:30%; text-align:center;">
+      <label for="projectDesc" style="display:block; font-weight:bold; margin-bottom:2px;">
+        Project Description
+      </label>
+      <input type="text" id="projectDesc" placeholder="Enter project description" style="width:80%; margin:auto; display:block;">
+    </div>
+  
+    <!-- Kanan -->
+    <div class="form-group" style="width:30%; text-align:right;">
+      <label for="date" style="display:block; font-weight:bold; margin-bottom:2px; text-align:center;">
+        Date
+      </label>
+      <input type="date" id="date" style="width:80%;">
+    </div>
 
 </div>
 
@@ -372,10 +420,15 @@
         <td><button class="btn addHardware">+</button></td>
       </tr>
     </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" style="text-align:right; font-weight:bold;">Total Investment</td>
+        <td id="totalInvestment" style="font-weight:bold;">0</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
   </div>
-
-  <div style="text-align: right; margin-top: 10px; font-weight: bold;">Total Investment: <span id="totalInvestment">0</span></div>
 
   <h3>Service Table</h3>
   <div class="table-wrapper">
@@ -417,7 +470,8 @@
     <tr>
       <td>Discount</td>
       <td>
-        <select id="discount">
+        <select id="discount" style="width:160px; padding:6px 10px; border-radius:6px; border:1px solid #ccc;">
+
           <option value="0"selected>0%</option>
           <option value="15">15%</option>
           <option value="20">20%</option>
@@ -443,8 +497,9 @@
   <button class="btn" id="summaryBtn" onclick="toggleSummary()">Show Monthly Summary</button>
 
   <!-- Dropdown TOP -->
-  <select id="topSelect" style="padding:6px; border-radius:5px; border:1px solid #ccc;">
-    <option value="0" selected>Pilih TOP</option>
+  <select id="topSelect" style="width: 170px; padding:6px; border-radius:5px; border:1px solid #ccc;">
+
+    <option value="0" selected>Pilih Term of Payment</option>
     <option value="3">TOP 3</option>
     <option value="6">TOP 6</option>
     <option value="12">TOP 12</option>

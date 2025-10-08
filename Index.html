@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Managed Services</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <style>
+  body {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: linear-gradient(to right, #000000, #000000);
+    
+  }
+  .container {
+    background: #fff;
+    border: 2px solid #000000;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 1300px;
+    height: 850px;
+    margin: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+    background: #00bcd4;
+    color: white;
+    padding: 10px;
+    margin: 0;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  .row label {
+    font-weight: bold;
+    width: 200px;
+  }
+  input, select {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  /* === TABLE === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    table-layout: fixed;
+  }
+  table th {
+    background: #00bcd4;
+    color: white;
+    padding: 8px;
+    text-align: center;
+  }
+  table td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+  }
+
+  /* Kolom No lebih kecil */
+  #hardwareTable th:nth-child(1),
+  #hardwareTable td:nth-child(1),
+  #serviceTable th:nth-child(1),
+  #serviceTable td:nth-child(1) {
+    width: 20px;
+  }
+  #hardwareTable th:nth-child(2),
+  #hardwareTable td:nth-child(2),
+  #serviceTable th:nth-child(2),
+  #serviceTable td:nth-child(2) {
+    width: 40%;    /* kolom Item/Services lebih lebar */
+  }
+  #hardwareTable th:nth-child(3),
+  #hardwareTable td:nth-child(3),
+  #serviceTable th:nth-child(3),
+  #serviceTable td:nth-child(3) {
+    width: 15%;
+  }
+  #hardwareTable th:nth-child(4),
+  #hardwareTable td:nth-child(4),
+  #serviceTable th:nth-child(4),
+  #serviceTable td:nth-child(4) {
+    width: 15%;
+  }
+  #hardwareTable th:nth-child(5),
+  #hardwareTable td:nth-child(5),
+  #serviceTable th:nth-child(5),
+  #serviceTable td:nth-child(5) {
+    width: 15%;
+  }
+  #hardwareTable th:nth-child(6),
+  #hardwareTable td:nth-child(6),
+  #serviceTable th:nth-child(6),
+  #serviceTable td:nth-child(6) {
+    width: 70px;
+  }
+
+  table input,
+  table select {
+    width: 95%;
+    box-sizing: border-box;
+  }
+
+  .btn {
+    background: #00acc1;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .btn:hover {
+    background: #00838f;
+    transform: scale(1.05);
+  }
+  .delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .summary {
+    margin-top: 15px;
+    width: 50%;
+    float: right;
+  }
+  .summary tr td {
+    padding: 5px;
+  }
+  .summary td {
+  text-align: right;
+}
+.summary td:first-child {
+  text-align: left; /* kolom label tetap kiri */
+}
+.summary select,
+.summary input {
+  float: right;
+  text-align: right; /* biar angka di dalam input juga rata kanan */
+}
+
+/* Responsive fix for summary table */
+@media (max-width: 1024px) {
+  .summary {
+    width: 100% !important;
+    float: none !important;
+    margin-top: 20px;
+  }
+  .summary select,
+  .summary input {
+    float: none !important;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left !important;
+  }
+}
+
+
+  .download {
+    margin-top: 30px;
+  }
+
+  .select2-container {
+    width: 100% !important;
+  }
+#summaryBox {
+  display:none;
+  margin-top:20px;
+  margin-left:12px;
+  padding:10px 15px 10px 0;
+  font-style: normal;
+  white-space: normal;
+  text-align: left;
+  font-family: inherit;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================
+   Tablet (max 1024px)
+   =========================== */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+    height: auto; /* biar fleksibel */
+  }
+  .row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .row > .form-group {
+    width: 100% !important;
+    margin-bottom: 12px;
+    text-align: left !important;
+  }
+  input, select {
+    width: 100% !important;
+    font-size: 1rem;
+  }
+  .summary {
+    width: 100% !important;
+    float: none !important;
+    margin-top: 15px;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    min-width: 600px; /* biar tabel tidak hancur */
+    font-size: 0.9rem;
+  }
+}
+
+/* ===========================
+   Mobile (max 600px)
+   =========================== */
+@media (max-width: 600px) {
+  h2 {
+    font-size: 1.3rem;
+    text-align: center;
+    line-height: 1.4;
+  }
+  h3 {
+    font-size: 1rem;
+    margin-top: 12px;
+  }
+  .btn {
+    width: 100%;          /* full width biar gampang tap */
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  input, select {
+    font-size: 0.9rem;
+  }
+  .row > .form-group label {
+    font-size: 0.85rem;
+  }
+  table {
+    font-size: 0.8rem;
+  }
+  table th,
+  table td {
+    padding: 4px 6px;
+  }
+  #summaryBox {
+    font-size: 0.85rem;
+    padding: 10px;
+    margin-top: 10px;
+  }
+}
+
+</style>
+
+</head>
+<body>
+<div class="container">
+  <h2>MANAGE SERVICES WEST 4</h2>
+
+  <div class="row" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+  
+  <!-- Kiri -->
+  <div class="form-group" style="width:30%; text-align:left;">
+    <label for="customerName" style="display:block; font-weight:bold; margin-bottom:2px;">
+      Customer Name
+    </label>
+    <input type="text" id="customerName" placeholder="Enter customer name" style="width:100%;">
+  </div>
+
+  <!-- Tengah -->
+  <div class="form-group" style="width:30%; text-align:center;">
+    <label for="projectDesc" style="display:block; font-weight:bold; margin-bottom:2px;">
+      Project Description
+    </label>
+    <input type="text" id="projectDesc" placeholder="Enter project description" style="width:80%; margin:auto; display:block;">
+  </div>
+
+  <!-- Kanan -->
+  <div class="form-group" style="width:30%; text-align:right;">
+    <label for="date" style="display:block; font-weight:bold; margin-bottom:2px; text-align:right;">
+      Date
+    </label>
+    <input type="date" id="date" style="width:80%;">
+  </div>
+
+</div>
+
+  <h3>Hardware Table</h3>
+  <div class="table-wrapper">
+  <table id="hardwareTable">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Item Description</th>
+        <th>Qty</th>
+        <th>Unit Price</th>
+        <th>Ext Price</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><input type="text" placeholder="Item"></td>
+        <td><input type="text" class="qty"></td>
+        <td><input type="text" class="unitPrice"></td>
+        <td class="extPrice">0</td>
+        <td><button class="btn addHardware">+</button></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div style="text-align: right; margin-top: 10px; font-weight: bold;">Total Investment: <span id="totalInvestment">0</span></div>
+
+  <h3>Service Table</h3>
+  <div class="table-wrapper">
+  <table id="serviceTable">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Services</th>
+        <th>Contract</th>
+        <th>Revenue</th>
+        <th>Ext Revenue</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>
+          <select class="serviceSelect">
+            <option value="">-- Select Service --</option>
+            <!-- Services inserted here -->
+          </select>
+        </td>
+        <td>
+          <select class="contract">
+            <option selected>12</option>
+            <option>24</option>
+            <option>36</option>
+          </select>
+        </td>
+        <td class="revenue">0</td>
+        <td class="extRevenue">0</td>
+        <td><button class="btn addService">+</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="summary">
+    <tr>
+      <td>Discount</td>
+      <td>
+        <select id="discount">
+          <option value="0"selected>0%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25" >25%</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Installation Fee</td>
+      <td><input type="text" id="installationFee" value="0"></td>
+    </tr>
+    <tr>
+      <td><b>Total Revenue</b></td>
+      <td><b id="totalRevenue">0</b></td>
+    </tr>
+    <tr>
+      <td>Hardware Cost %</td>
+      <td id="hardwareCost">0%</td>
+    </tr>
+  </table>
+
+  <div class="download" style="display:flex; align-items:center; gap:10px;">
+  <button class="btn" id="summaryBtn" onclick="toggleSummary()">Show Monthly Summary</button>
+
+  <!-- Dropdown TOP -->
+  <select id="topSelect" style="padding:6px; border-radius:5px; border:1px solid #ccc;">
+    <option value="0" selected>Pilih TOP</option>
+    <option value="3">TOP 3</option>
+    <option value="6">TOP 6</option>
+    <option value="12">TOP 12</option>
+  </select>
+
+  <button class="btn" onclick="exportToExcel()">Export Excel</button>
+
+  <button class="btn" onclick="window.open('roi.html', '_blank')">ROI</button>
+</div>
+
+<div id="summaryBox"></div>
+
+
+  
+
+
+</div>
+
+<script>
+  const servicesData = [
+    ["Biznet Dedicated Internet 80 Mbps",5200000,2000000],
+    ["Biznet Dedicated Internet 100 Mbps",6500000,2000000],
+    ["Biznet Dedicated Internet 120 Mbps",7410000,2000000],
+    ["Biznet Dedicated Internet 160 Mbps",9880000,2000000],
+    ["Biznet Dedicated Internet 200 Mbps",12350000,5000000],
+    ["Biznet Dedicated Internet 240 Mbps",14040000,5000000],
+    ["Biznet Dedicated Internet 280 Mbps",16380000,5000000],
+    ["Biznet Dedicated Internet 320 Mbps",18720000,5000000],
+    ["Biznet Dedicated Internet 360 Mbps",21060000,5000000],
+    ["Biznet Dedicated Internet 400 Mbps",23400000,10000000],
+    ["Biznet Dedicated Internet 500 Mbps",27625000,10000000],
+    ["Biznet Dedicated Internet 600 Mbps",33150000,10000000],
+    ["Biznet Dedicated Internet 700 Mbps",38675000,10000000],
+    ["Biznet Dedicated Internet 800 Mbps",44200000,10000000],
+    ["Biznet Dedicated Internet 900 Mbps",49725000,10000000],
+    ["Biznet Dedicated Internet 1 Gbps",55250000,10000000],
+    ["Biznet Dedicated Internet 1.2 Gbps",66300000,10000000],
+    ["Biznet Dedicated Internet 1.6 Gbps",88400000,10000000],
+    ["Biznet Dedicated Internet 2 Gbps",110500000,15000000],
+    ["Biznet Dedicated Internet 3 Gbps",156000000,15000000],
+    ["Biznet Dedicated Internet 4 Gbps",208000000,15000000],
+    ["Biznet Dedicated Internet 10 Gbps",471250000,25000000],
+    ["Biznet Dedicated Educationnet/Healthnet 160 Mbps",3952000,2000000],
+    ["Biznet Dedicated Educationnet/Healthnet 200 Mbps",4940000,5000000],
+    ["Biznet Dedicated Educationnet/Healthnet 240 Mbps",5616000,5000000],
+    ["Biznet Dedicated Educationnet/Healthnet 280 Mbps",6552000,5000000],
+    ["Biznet Dedicated Educationnet/Healthnet 320 Mbps",7488000,5000000],
+    ["Biznet Dedicated Educationnet/Healthnet 360 Mbps",8424000,5000000],
+    ["Biznet Dedicated Educationnet/Healthnet 400 Mbps",9360000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 500 Mbps",11050000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 600 Mbps",13260000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 700 Mbps",15470000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 800 Mbps",17680000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 900 Mbps",19890000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 1 Gbps",22100000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 1.2 Gbps",26520000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 1.6 Gbps",35360000,10000000],
+    ["Biznet Dedicated Educationnet/Healthnet 2 Gbps",44200000,15000000],
+    ["Biznet Dedicated Educationnet/Healthnet 3 Gbps",62400000,15000000],
+    ["Biznet Dedicated Educationnet/Healthnet 4 Gbps",83200000,15000000],
+    ["Biznet Dedicated Educationnet/Healthnet 10 Gbps",188500000,25000000],
+    ["Biznet Dedicated Hospitalitynet 80 Mbps",3120000,2000000],
+    ["Biznet Dedicated Hospitalitynet 100 Mbps",3900000,5000000],
+    ["Biznet Dedicated Hospitalitynet 120 Mbps",4446000,5000000],
+    ["Biznet Dedicated Hospitalitynet 160 Mbps",5928000,5000000],
+    ["Biznet Dedicated Hospitalitynet 200 Mbps",7410000,5000000],
+    ["Biznet Dedicated Hospitalitynet 240 Mbps",8424000,5000000],
+    ["Biznet Dedicated Hospitalitynet 280 Mbps",9828000,10000000],
+    ["Biznet Dedicated Hospitalitynet 320 Mbps",11232000,10000000],
+    ["Biznet Dedicated Hospitalitynet 360 Mbps",12636000,10000000],
+    ["Biznet Dedicated Hospitalitynet 400 Mbps",14040000,10000000],
+    ["Biznet Dedicated Hospitalitynet 500 Mbps",16575000,10000000],
+    ["Biznet Dedicated Hospitalitynet 600 Mbps",19890000,10000000],
+    ["Biznet Dedicated Hospitalitynet 700 Mbps",23205000,10000000],
+    ["Biznet Dedicated Hospitalitynet 800 Mbps",26520000,10000000],
+    ["Biznet Dedicated Hospitalitynet 900 Mbps",29835000,15000000],
+    ["Biznet Dedicated Hospitalitynet 1 Gbps",33150000,15000000],
+    ["Biznet Dedicated Hospitalitynet 1.2 Gbps",39780000,15000000],
+    ["Biznet Dedicated Hospitalitynet 1.6 Gbps",53040000,25000000],
+  ];
+
+  function populateServices(selectEl) {
+    selectEl.innerHTML = '<option value="">-- Select Service --</option>';
+    servicesData.forEach(([name, revenue, install])=>{
+      let opt = document.createElement("option");
+      opt.value = revenue;
+      opt.textContent = name;
+      opt.dataset.install = install;
+      selectEl.appendChild(opt);
+    });
+    try { $(selectEl).select2(); } catch(e) {}
+  }
+
+  function formatNumber(num) {
+    if (num === null || num === undefined || num === "") return "0";
+    return Number(num).toLocaleString('en-US');
+  }
+
+  function getNumeric(val){
+    if (val === null || val === undefined) return 0;
+    const s = String(val).replace(/[^\d\-]/g, '');
+    return s === "" || s === "-" ? 0 : Number(s);
+  }
+
+  function recalcHardware() {
+    document.querySelectorAll("#hardwareTable tbody tr").forEach((row, idx) => {
+      row.children[0].innerText = idx + 1;
+      let qty = getNumeric(row.querySelector(".qty")?.value);
+      let unit = getNumeric(row.querySelector(".unitPrice")?.value);
+      let ext = qty * unit;
+      row.querySelector(".extPrice").innerText = formatNumber(ext);
+    });
+    recalcSummary();
+    if (document.getElementById("summaryBox").style.display === "block") showSummary();
+  }
+
+  function recalcService() {
+    let discount = getNumeric(document.getElementById("discount").value);
+
+    document.querySelectorAll("#serviceTable tbody tr").forEach((row, idx) => {
+      row.children[0].innerText = idx + 1;
+      let service = row.querySelector(".serviceSelect");
+      let contract = getNumeric(row.querySelector(".contract")?.value);
+      let baseRevenue = getNumeric(service?.value);
+
+      let revenue = baseRevenue * (1 - discount / 100); 
+      row.querySelector(".revenue").innerText = formatNumber(revenue);
+
+      let ext = revenue * contract; 
+      row.querySelector(".extRevenue").innerText = formatNumber(ext);
+    });
+
+    recalcSummary();
+    if (document.getElementById("summaryBox").style.display === "block") showSummary();
+  }
+
+  function recalcSummary() {
+    let totalHardware = 0, totalExtRevenue = 0;
+    document.querySelectorAll(".extPrice").forEach(td => totalHardware += getNumeric(td.innerText));
+    document.querySelectorAll(".extRevenue").forEach(td => totalExtRevenue += getNumeric(td.innerText));
+    document.getElementById("totalInvestment").innerText = formatNumber(totalHardware);
+
+    let install = getNumeric(document.getElementById("installationFee").value);
+
+    let totalRevenue = totalExtRevenue + install;
+    document.getElementById("totalRevenue").innerText = formatNumber(totalRevenue);
+
+    let hardwareCost = totalExtRevenue > 0 ? (totalHardware / totalExtRevenue * 100).toFixed(2) : "0.00";
+    document.getElementById("hardwareCost").innerText = hardwareCost + "%";
+  }
+
+  function handleServiceChange(el) {
+    if (!el) return;
+    const opt = el.selectedOptions && el.selectedOptions[0];
+    const installVal = opt ? getNumeric(opt.dataset.install) : 0;
+    document.getElementById("installationFee").value = formatNumber(installVal);
+    recalcService();
+  }
+
+  // Input handler
+  document.addEventListener("input", e=>{
+    if (e.target.classList.contains("qty") || e.target.classList.contains("unitPrice")) {
+      e.target.value = e.target.value.replace(/[^\d]/g,""); 
+    }
+    if(e.target.classList.contains("qty") || e.target.classList.contains("unitPrice")) recalcHardware();
+    if(e.target.classList.contains("contract")) recalcService();
+    if(e.target.id === "installationFee") recalcSummary();
+    if(e.target.id === "discount") recalcService();
+  });
+
+  $(document).on('change', '.serviceSelect', function(e){
+    handleServiceChange(this);
+  });
+
+  document.addEventListener("click", e=>{
+    if(e.target.classList.contains("addHardware")){
+      let row = e.target.closest("tr").cloneNode(true);
+      row.querySelectorAll("input").forEach(i=>i.value="");
+      row.querySelector(".extPrice").innerText="0";
+      row.querySelector("td:last-child").innerHTML='<button class="delete-btn">🗑</button>';
+      document.querySelector("#hardwareTable tbody").appendChild(row);
+      recalcHardware();
+    }
+    if(e.target.classList.contains("addService")){
+      let row = e.target.closest("tr").cloneNode(true);
+      let select = row.querySelector(".serviceSelect");
+      populateServices(select);
+      row.querySelector(".revenue").innerText="0";
+      row.querySelector(".extRevenue").innerText="0";
+      row.querySelector("td:last-child").innerHTML='<button class="delete-btn">🗑</button>';
+      document.querySelector("#serviceTable tbody").appendChild(row);
+      recalcService();
+    }
+    if(e.target.classList.contains("delete-btn")){
+      e.target.closest("tr").remove();
+      recalcHardware();
+      recalcService();
+    }
+  });
+
+  function toggleSummary() {
+    const box = document.getElementById("summaryBox");
+    const btn = document.getElementById("summaryBtn");
+    if (box.style.display === "none" || box.style.display === "") {
+      showSummary();
+      btn.textContent = "Hide Summary";
+    } else {
+      box.style.display = "none";
+      btn.textContent = "Show Summary";
+    }
+  }
+
+  function showSummary() {
+    let totalRevenueForSummary = 0;
+    document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
+      let revenue = getNumeric(row.querySelector(".revenue").innerText);
+      totalRevenueForSummary += revenue;
+    });
+
+    const install = getNumeric(document.getElementById("installationFee").value);
+    let top = getNumeric(document.getElementById("topSelect").value);
+    if (top === 0) top = 1; 
+
+    const firstBase = (totalRevenueForSummary * top) + install;
+    const firstVAT = Math.floor(firstBase * 0.11);
+    const firstPayment = firstBase + firstVAT + 10000;
+
+    const nextBase = totalRevenueForSummary * top;
+    const nextVAT = Math.floor(nextBase * 0.11);
+    const nextPayment = nextBase + nextVAT + 10000;
+
+    const box = document.getElementById("summaryBox");
+    box.style.display = "block";
+    box.innerHTML = `
+      <div style="font-size: 12px; font-weight: bold;">First Payment Amount Rp ${formatNumber(firstPayment)}</div>
+      <div style="font-size: 10px; margin-left: 10px;">
+        Included,<br>
+        * Service (x${top}): Rp ${formatNumber(totalRevenueForSummary * top)}<br>
+        * Installation Fee: Rp ${formatNumber(install)}<br>
+        * VAT 11%: Rp ${formatNumber(firstVAT)}<br>
+        * Stamp: Rp 10.000
+      </div>
+      <br>
+      <div style="font-size: 12px; font-weight: bold;">Next Payment Amount Rp ${formatNumber(nextPayment)}</div>
+      <div style="font-size: 10px; margin-left: 10px;">
+        Included,<br>
+        * Service (x${top}): Rp ${formatNumber(totalRevenueForSummary * top)}<br>
+        * VAT 11%: Rp ${formatNumber(nextVAT)}<br>
+        * Stamp: Rp 10.000
+      </div>
+    `;
+  }
+
+  // init
+  populateServices(document.querySelector(".serviceSelect"));
+  const installInput = document.getElementById("installationFee");
+  if (installInput) installInput.value = formatNumber(getNumeric(installInput.value));
+
+  // Auto update kalau TOP berubah
+  document.getElementById("topSelect").addEventListener("change", function() {
+    if (document.getElementById("summaryBox").style.display === "block") {
+      showSummary();
+    }
+  });
+  // Auto update kalau TOP berubah
+document.getElementById("topSelect").addEventListener("change", function() {
+  if (document.getElementById("summaryBox").style.display === "block") {
+    showSummary();
+  }
+});
+
+// 🔥 Auto update kalau Installation Fee berubah
+document.getElementById("installationFee").addEventListener("input", function() {
+  if (document.getElementById("summaryBox").style.display === "block") {
+    showSummary();
+  }
+});
+
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+
+  // ServicesData sheet
+  const servicesDataWS = XLSX.utils.aoa_to_sheet([['Service Name', 'Revenue', 'Install Fee'], ...servicesData]);
+  XLSX.utils.book_append_sheet(wb, servicesDataWS, 'ServicesData');
+
+  const ws = XLSX.utils.aoa_to_sheet([]);
+
+  let rowIdx = 0;
+
+  // Hardware Table
+  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Hardware Table'};
+  const hardwareHeaders = ['No', 'Item Description', 'Qty', 'Unit Price', 'Ext Price'];
+  hardwareHeaders.forEach((h, i) => ws[XLSX.utils.encode_cell({r: rowIdx, c: i})] = {v: h});
+  rowIdx++;
+
+  document.querySelectorAll('#hardwareTable tbody tr').forEach((row, idx) => {
+    const no = row.children[0].innerText;
+    const item = row.querySelector('input[placeholder="Item"]')?.value || '';
+    const qty = row.querySelector('.qty')?.value || 0;
+    const unit = row.querySelector('.unitPrice')?.value || 0;
+    const extRow = rowIdx + 1;
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: no};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: item};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 2})] = {v: qty};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 3})] = {v: unit};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 4})] = {t: 'n', f: `C${extRow}*D${extRow}`};
+    rowIdx++;
+  });
+
+  rowIdx += 2; // blank rows
+
+  // Service Table
+  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Service Table'};
+  const serviceHeaders = ['No', 'Services', 'Contract', 'Revenue', 'Ext Revenue'];
+  serviceHeaders.forEach((h, i) => ws[XLSX.utils.encode_cell({r: rowIdx, c: i})] = {v: h});
+  rowIdx++;
+
+  const serviceOptions = servicesData.map(s => s[0]);
+  const contractOptions = ['1', '12', '24', '36'];
+
+  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
+    const no = row.children[0].innerText;
+    const service = row.querySelector('.serviceSelect option:checked')?.text || '';
+    const contract = row.querySelector('.contract')?.value || '1';
+    const revenue = getNumeric(row.querySelector('.revenue').innerText);
+    const extRevenue = getNumeric(row.querySelector('.extRevenue').innerText);
+    const revRow = rowIdx + 1;
+    const extRow = rowIdx + 1;
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: no};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: service};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 2})] = {v: contract};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 3})] = {t: 'n', f: `LOOKUP(B${revRow}, ServicesList, BaseList) * (1 - Discount!B2 / 100)`};
+    ws[XLSX.utils.encode_cell({r: rowIdx, c: 4})] = {t: 'n', f: `D${extRow}*C${extRow}`};
+    rowIdx++;
+  });
+
+  rowIdx += 2;
+
+  // Summary
+  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Summary'};
+  const discount = document.getElementById('discount').value;
+  const installFee = getNumeric(document.getElementById('installationFee').value);
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Discount'};
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: discount};
+  rowIdx++;
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Installation Fee'};
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: installFee};
+  rowIdx++;
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Total Revenue'};
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {t: 'n', f: 'SUM(E:E) + B' + (rowIdx)};
+  rowIdx++;
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Hardware Cost %'};
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {t: 'n', f: 'SUM(E:E) / SUM(E:E) * 100'}; // adjust
+  rowIdx++;
+
+  rowIdx += 2;
+
+  // Summary Box
+  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Summary Box'};
+  const summaryBoxText = document.getElementById('summaryBox').innerText || 'No summary shown';
+  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: summaryBoxText};
+
+  // Add data validation for dropdowns
+  ws['!dataValidation'] = [];
+
+  // For service cells, starting from row after header
+  const serviceStartRow = 3; // after Hardware Table header and headers
+  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
+    const cellRef = XLSX.utils.encode_cell({r: serviceStartRow + idx, c: 1});
+    ws['!dataValidation'].push({
+      sqref: cellRef,
+      type: 'list',
+      values: serviceOptions
+    });
+  });
+
+  // For contract
+  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
+    const cellRef = XLSX.utils.encode_cell({r: serviceStartRow + idx, c: 2});
+    ws['!dataValidation'].push({
+      sqref: cellRef,
+      type: 'list',
+      values: contractOptions
+    });
+  });
+
+  // For discount
+  const discountRow = rowIdx - 3; // adjust
+  ws['!dataValidation'].push({
+    sqref: XLSX.utils.encode_cell({r: discountRow, c: 1}),
+    type: 'list',
+    values: ['0', '15', '20', '25']
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Manage Services');
+
+  // Save
+  XLSX.writeFile(wb, 'manage_services.xlsx');
+}
+
+</script>
+
+
+</body>
+</html>

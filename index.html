@@ -66,7 +66,7 @@
     
     .row label {
       font-weight: 600;
-      color: #334155;
+      color: #000000;
     }
     
     input,
@@ -92,6 +92,8 @@
       overflow-x: auto;
       border-radius: var(--radius);
       margin-top: 15px;
+      
+    
     }
     
     table {
@@ -120,55 +122,91 @@
     }
     
     tr:nth-child(even) td {
-      background: #f8fafc;
+      background: #fff;
     }
     
     tr:hover td {
-      background: #e8f2fc;
+      background: #fff;
     }
     
     /* Specific column sizing */
+/* === Sinkronisasi ukuran & posisi kolom antara Hardware dan Service Table === */
+#hardwareTable,
+#serviceTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* Kolom No */
 #hardwareTable th:nth-child(1),
 #hardwareTable td:nth-child(1),
 #serviceTable th:nth-child(1),
 #serviceTable td:nth-child(1) {
-  width: 5%;   /* Kolom No */
+  width: 5%;
 }
 
+/* Kolom Item Description */
 #hardwareTable th:nth-child(2),
 #hardwareTable td:nth-child(2),
 #serviceTable th:nth-child(2),
 #serviceTable td:nth-child(2) {
-  width: 40%;  /* Item Description */
+  width: 40%;
 }
 
+/* Kolom Qty */
 #hardwareTable th:nth-child(3),
 #hardwareTable td:nth-child(3),
 #serviceTable th:nth-child(3),
 #serviceTable td:nth-child(3) {
-  width: 10%;  /* Qty */
+  width: 10%;
 }
 
+/* Kolom Unit Price */
 #hardwareTable th:nth-child(4),
 #hardwareTable td:nth-child(4),
 #serviceTable th:nth-child(4),
 #serviceTable td:nth-child(4) {
-  width: 15%;  /* Unit Price */
+  width: 15%;
 }
 
+/* Kolom Ext Price */
 #hardwareTable th:nth-child(5),
 #hardwareTable td:nth-child(5),
 #serviceTable th:nth-child(5),
 #serviceTable td:nth-child(5) {
-  width: 15%;  /* Ext Price */
+  width: 15%;
 }
 
+/* Kolom Action */
 #hardwareTable th:nth-child(6),
 #hardwareTable td:nth-child(6),
 #serviceTable th:nth-child(6),
 #serviceTable td:nth-child(6) {
-  width: 10%;  /* Action */
+  width: 10%;
 }
+
+/* === Styling umum agar posisi tabel sama === */
+#hardwareTable th, #hardwareTable td,
+#serviceTable th, #serviceTable td {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+#hardwareTable th,
+#serviceTable th {
+  background-color: #0576e6;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Agar posisi tabel sejajar */
+#hardwareTable, #serviceTable {
+  margin: 0 auto;
+  table-layout: fixed; /* penting agar kolom tetap sejajar */
+}
+
 /* Agar input dan select tidak melewati batas cell */
 #hardwareTable input,
 #hardwareTable select {
@@ -286,8 +324,8 @@
     /* === SUMMARY BOX === */
     #summaryBox {
       display: none;
-      background: #e8f5e9;
-      border-left: 6px solid #4caf50;
+      background: #08bafb75;
+      border-left: 6px solid #4cacf0;
       padding: 15px 20px;
       margin-top: 25px;
       border-radius: 8px;
@@ -372,7 +410,7 @@
   <div class="row" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
   
     <!-- Kiri -->
-    <div class="form-group" style="width:30%; text-align:center;">
+    <div class="form-group" style="width:30%; text-align:left;">
       <label for="customerName" style="display:block; font-weight:bold; margin-bottom:2px;">
         Customer Name
       </label>
@@ -683,21 +721,37 @@
       document.querySelector("#hardwareTable tbody").appendChild(row);
       recalcHardware();
     }
-    if(e.target.classList.contains("addService")){
-      let row = e.target.closest("tr").cloneNode(true);
-      let select = row.querySelector(".serviceSelect");
-      populateServices(select);
-      row.querySelector(".revenue").innerText="0";
-      row.querySelector(".extRevenue").innerText="0";
-      row.querySelector("td:last-child").innerHTML='<button class="delete-btn">🗑</button>';
-      document.querySelector("#serviceTable tbody").appendChild(row);
-      recalcService();
-    }
-    if(e.target.classList.contains("delete-btn")){
-      e.target.closest("tr").remove();
-      recalcHardware();
-      recalcService();
-    }
+    if (e.target.classList.contains("addService")) {
+        const tableBody = document.querySelector("#serviceTable tbody");
+        const newRow = document.createElement("tr");
+
+        newRow.innerHTML = `
+          <td>${tableBody.rows.length + 1}</td>
+          <td>
+            <select class="serviceSelect">
+              <option value="">-- Select Service --</option>
+            </select>
+          </td>
+          <td>
+            <select class="contract">
+              <option selected>12</option>
+              <option>24</option>
+              <option>36</option>
+            </select>
+          </td>
+          <td class="revenue">0</td>
+          <td class="extRevenue">0</td>
+          <td><button class="delete-btn">🗑</button></td>
+        `;
+
+        tableBody.appendChild(newRow);
+        populateServices(newRow.querySelector(".serviceSelect"));
+      }
+
+      // Tombol hapus baris
+      if (e.target.classList.contains("delete-btn")) {
+        e.target.closest("tr").remove();
+      }
   });
 
   function toggleSummary() {

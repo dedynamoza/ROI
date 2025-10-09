@@ -92,17 +92,16 @@
       overflow-x: auto;
       border-radius: var(--radius);
       margin-top: 15px;
-      
-    
     }
     
-    table {
+    /* Tabel seragam untuk hardware & service */
+    #hardwareTable,
+    #serviceTable {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: #fff;
+      text-align: left;
+      table-layout: fixed; /* menjaga lebar kolom */
+      min-width: 700px; /* biar tidak pecah di layar kecil */
     }
     
     th,
@@ -110,6 +109,7 @@
       text-align: center;
       padding: 12px 8px;
       border-bottom: 1px solid var(--border);
+      vertical-align: middle;
     }
     
     th {
@@ -122,110 +122,78 @@
     }
     
     tr:nth-child(even) td {
-      background: #fff;
+      background: #f9fafb;
     }
     
     tr:hover td {
-      background: #fff;
+      background: #f1f8ff;
     }
     
-    /* Specific column sizing */
-/* === Sinkronisasi ukuran & posisi kolom antara Hardware dan Service Table === */
-#hardwareTable,
-#serviceTable {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-/* Kolom No */
-#hardwareTable th:nth-child(1),
-#hardwareTable td:nth-child(1),
-#serviceTable th:nth-child(1),
-#serviceTable td:nth-child(1) {
-  width: 5%;
-}
-
-/* Kolom Item Description */
-#hardwareTable th:nth-child(2),
-#hardwareTable td:nth-child(2),
-#serviceTable th:nth-child(2),
-#serviceTable td:nth-child(2) {
-  width: 40%;
-}
-
-/* Kolom Qty */
-#hardwareTable th:nth-child(3),
-#hardwareTable td:nth-child(3),
-#serviceTable th:nth-child(3),
-#serviceTable td:nth-child(3) {
-  width: 10%;
-}
-
-/* Kolom Unit Price */
-#hardwareTable th:nth-child(4),
-#hardwareTable td:nth-child(4),
-#serviceTable th:nth-child(4),
-#serviceTable td:nth-child(4) {
-  width: 15%;
-}
-
-/* Kolom Ext Price */
-#hardwareTable th:nth-child(5),
-#hardwareTable td:nth-child(5),
-#serviceTable th:nth-child(5),
-#serviceTable td:nth-child(5) {
-  width: 15%;
-}
-
-/* Kolom Action */
-#hardwareTable th:nth-child(6),
-#hardwareTable td:nth-child(6),
-#serviceTable th:nth-child(6),
-#serviceTable td:nth-child(6) {
-  width: 10%;
-}
-
-/* === Styling umum agar posisi tabel sama === */
-#hardwareTable th, #hardwareTable td,
-#serviceTable th, #serviceTable td {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  vertical-align: middle;
-}
-
-#hardwareTable th,
-#serviceTable th {
-  background-color: #0576e6;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Agar posisi tabel sejajar */
-#hardwareTable, #serviceTable {
-  margin: 0 auto;
-  table-layout: fixed; /* penting agar kolom tetap sejajar */
-}
-
-/* Agar input dan select tidak melewati batas cell */
-#hardwareTable input,
-#hardwareTable select {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f9fafb;
-  font-size: 14px;
-}
-
-#hardwareTable input:focus {
-  border-color: #1976d2;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
-}
-
-
+    /* === Sinkronisasi kolom === */
+    #hardwareTable th:nth-child(1),
+    #hardwareTable td:nth-child(1),
+    #serviceTable th:nth-child(1),
+    #serviceTable td:nth-child(1) {
+      width: 5%;
+    }
+    
+    #hardwareTable th:nth-child(2),
+    #hardwareTable td:nth-child(2),
+    #serviceTable th:nth-child(2),
+    #serviceTable td:nth-child(2) {
+      width: 40%;
+    }
+    
+    #hardwareTable th:nth-child(3),
+    #hardwareTable td:nth-child(3),
+    #serviceTable th:nth-child(3),
+    #serviceTable td:nth-child(3) {
+      width: 10%;
+    }
+    
+    #hardwareTable th:nth-child(4),
+    #hardwareTable td:nth-child(4),
+    #serviceTable th:nth-child(4),
+    #serviceTable td:nth-child(4) {
+      width: 15%;
+    }
+    
+    #hardwareTable th:nth-child(5),
+    #hardwareTable td:nth-child(5),
+    #serviceTable th:nth-child(5),
+    #serviceTable td:nth-child(5) {
+      width: 15%;
+    }
+    
+    #hardwareTable th:nth-child(6),
+    #hardwareTable td:nth-child(6),
+    #serviceTable th:nth-child(6),
+    #serviceTable td:nth-child(6) {
+      width: 10%;
+    }
+    
+    /* Input & dropdown di dalam tabel */
+    #hardwareTable input,
+    #hardwareTable select,
+    #serviceTable input,
+    #serviceTable select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9fafb;
+      font-size: 14px;
+    }
+    
+    #hardwareTable input:focus,
+    #serviceTable input:focus,
+    #hardwareTable select:focus,
+    #serviceTable select:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+    }
     
     /* === BUTTONS === */
     .btn {
@@ -280,11 +248,6 @@
       border-spacing: 0 8px;
     }
     
-    .summary tr {
-      background: #fff;
-      border-radius: 8px;
-    }
-    
     .summary tr td {
       padding: 10px 8px;
     }
@@ -302,103 +265,77 @@
       color: #111827;
     }
     
-    .summary select,
-    .summary input {
-      width: 140px;
-      text-align: right;
-      border-radius: 8px;
-      border: 1px solid #cfd8dc;
-      background: #f9fafb;
-      padding: 6px 10px;
-      font-weight: 500;
-      color: #111827;
-    }
-    
-    .summary select:focus,
-    .summary input:focus {
-      background: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(25,118,210,0.1);
-    }
-    
-    /* === SUMMARY BOX === */
-    #summaryBox {
-      display: none;
-      background: #08bafb75;
-      border-left: 6px solid #4cacf0;
-      padding: 15px 20px;
-      margin-top: 25px;
-      border-radius: 8px;
-      font-size: 14px;
-      animation: fadeIn 0.3s ease;
-      width: 45%;
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    /* === DOWNLOAD AREA === */
-    .download {
-      margin-top: 40px;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    
-    .download select {
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fafafa;
-      transition: 0.2s;
-    }
-    
-    .download select:hover {
-      border-color: var(--primary);
-    }
-    
-    /* === RESPONSIVE === */
+    /* === RESPONSIVE DESIGN === */
     @media (max-width: 1024px) {
       .container {
         padding: 20px;
-        height: auto;
+        margin: 20px;
       }
+    
       .row {
         flex-direction: column;
         gap: 12px;
       }
+    
       .summary {
         width: 100%;
         float: none;
         margin-top: 25px;
         margin-right: 0;
       }
+    
+      .table-wrapper {
+        overflow-x: auto;
+      }
     }
     
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       h2 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         padding: 10px;
       }
-      table {
-        font-size: 12px;
-      }
+    
       .btn {
         width: 100%;
         font-size: 0.9rem;
       }
+    
+      input,
+      select {
+        font-size: 13px;
+      }
+    
+      th, td {
+        padding: 8px 6px;
+        font-size: 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 16px;
+      }
+    
+      h2 {
+        font-size: 1rem;
+      }
+    
+      .btn {
+        width: 100%;
+        padding: 10px;
+      }
+    
+      table {
+        min-width: 600px; /* scroll horizontal di layar sangat kecil */
+      }
+    
+      .summary {
+        width: 100%;
+        font-size: 13px;
+      }
     }
     </style>
+    
     
     
 

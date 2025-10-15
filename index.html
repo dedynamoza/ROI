@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Managed Services</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -216,13 +216,15 @@
       padding: 6px 12px;
       cursor: pointer;
       transition: all 0.25s ease;
-      box-shadow: 0 3px 6px rgba(239, 68, 68, 0.25);
+      box-shadow: 0 3px 6px rgba(60, 39, 39, 0.25);
     }
   
     .delete-btn:hover {
       background: #dc2626;
       transform: translateY(-1px);
     }
+
+    
   
     /* === SUMMARY BOX === */
     .summary {
@@ -445,13 +447,14 @@
   <!-- Dropdown TOP -->
   <select id="topSelect" style="width: 170px; padding:6px; border-radius:5px; border:1px solid #ccc;">
 
-    <option value="0" selected>Pilih Term of Payment</option>
+    <option value="0" selected>Term of Payment</option>
     <option value="3">TOP 3</option>
     <option value="6">TOP 6</option>
     <option value="12">TOP 12</option>
   </select>
 
- 
+  <button id="exportPdfBtn" class="btn">Export to PDF</button>
+
 
   <button class="btn" onclick="window.open('https://dedynamoza.github.io/subroi/')">ROI</button>
 </div>
@@ -475,8 +478,6 @@ animation: fadeIn 0.5s ease;
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
-
-  
 
 
 </div>
@@ -677,6 +678,9 @@ animation: fadeIn 0.5s ease;
       if (e.target.classList.contains("delete-btn")) {
         e.target.closest("tr").remove();
       }
+      if (e.target.id === "exportPdfBtn") {
+        exportToPDF();
+      }
   });
 
   function toggleSummary() {
@@ -757,127 +761,222 @@ document.getElementById("installationFee").addEventListener("input", function() 
   }
 });
 
-function exportToExcel() {
-  const wb = XLSX.utils.book_new();
-
-  // ServicesData sheet
-  const servicesDataWS = XLSX.utils.aoa_to_sheet([['Service Name', 'Revenue', 'Install Fee'], ...servicesData]);
-  XLSX.utils.book_append_sheet(wb, servicesDataWS, 'ServicesData');
-
-  const ws = XLSX.utils.aoa_to_sheet([]);
-
-  let rowIdx = 0;
-
-  // Hardware Table
-  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Hardware Table'};
-  const hardwareHeaders = ['No', 'Item Description', 'Qty', 'Unit Price', 'Ext Price'];
-  hardwareHeaders.forEach((h, i) => ws[XLSX.utils.encode_cell({r: rowIdx, c: i})] = {v: h});
-  rowIdx++;
-
-  document.querySelectorAll('#hardwareTable tbody tr').forEach((row, idx) => {
-    const no = row.children[0].innerText;
-    const item = row.querySelector('input[placeholder="Item"]')?.value || '';
-    const qty = row.querySelector('.qty')?.value || 0;
-    const unit = row.querySelector('.unitPrice')?.value || 0;
-    const extRow = rowIdx + 1;
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: no};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: item};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 2})] = {v: qty};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 3})] = {v: unit};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 4})] = {t: 'n', f: `C${extRow}*D${extRow}`};
-    rowIdx++;
+async function exportToPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
   });
 
-  rowIdx += 2; // blank rows
+  const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Service Table
-  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Service Table'};
-  const serviceHeaders = ['No', 'Services', 'Contract', 'Revenue', 'Ext Revenue'];
-  serviceHeaders.forEach((h, i) => ws[XLSX.utils.encode_cell({r: rowIdx, c: i})] = {v: h});
-  rowIdx++;
+  // === HEADER STYLE ===
+  const gradient = doc.context2d.createLinearGradient(0, 0, pageWidth, 0);
+  gradient.addColorStop(0, "#015C7B");
+  gradient.addColorStop(1, "#00ADEF");
+  doc.setFillColor(0, 163, 224);
+  doc.rect(10, 10, pageWidth - 25, 10, "F");
 
-  const serviceOptions = servicesData.map(s => s[0]);
-  const contractOptions = ['1', '12', '24', '36'];
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor("#ffffff");
+  doc.text("MANAGE SERVICES WEST 4", pageWidth / 2, 17, { align: "center" });
 
-  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
-    const no = row.children[0].innerText;
-    const service = row.querySelector('.serviceSelect option:checked')?.text || '';
-    const contract = row.querySelector('.contract')?.value || '1';
-    const revenue = getNumeric(row.querySelector('.revenue').innerText);
-    const extRevenue = getNumeric(row.querySelector('.extRevenue').innerText);
-    const revRow = rowIdx + 1;
-    const extRow = rowIdx + 1;
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: no};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: service};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 2})] = {v: contract};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 3})] = {t: 'n', f: `LOOKUP(B${revRow}, ServicesList, BaseList) * (1 - Discount!B2 / 100)`};
-    ws[XLSX.utils.encode_cell({r: rowIdx, c: 4})] = {t: 'n', f: `D${extRow}*C${extRow}`};
-    rowIdx++;
+  let y = 30;
+  doc.setFontSize(10);
+  doc.setTextColor("#000");
+
+  // === CUSTOMER INFO ===
+  const customerName = document.querySelector("#customerName")?.value || "";
+  const projectDesc = document.querySelector("#projectDesc")?.value || "";
+  const date = document.querySelector("#date")?.value || "";
+
+  doc.text(`Customer Name : ${customerName}`, 15, y);
+  doc.text(`Date : ${date}`, pageWidth - 80, y);
+  y += 6;
+  doc.text(`Project Name : ${projectDesc}`, 15, y);
+  y += 10;
+
+  // === HARDWARE TABLE ===
+  doc.setFont("helvetica", "bold");
+  doc.text("Hardware Table", 15, y);
+  y += 3;
+
+  const hardwareRows = [];
+  document.querySelectorAll("#hardwareTable tbody tr").forEach((row, i) => {
+    const item = row.querySelector('input[placeholder="Item"]')?.value || "";
+    const qty = row.querySelector(".qty")?.value || "";
+    const unit = row.querySelector(".unitPrice")?.value || "";
+    const ext = row.children[4]?.innerText || "";
+    hardwareRows.push([i + 1, item, qty, unit, ext]);
   });
 
-  rowIdx += 2;
+  doc.autoTable({
+    startY: y + 3,
+    head: [["No", "Item Description", "Qty", "Unit Price", "Ext Price"]],
+    body: hardwareRows,
+    theme: "grid",
+    styles: {
+      fontSize: 9,
+      halign: "center",
+      cellPadding: 3,
+    },
+    headStyles: {
+      fillColor: [0, 102, 153],
+      textColor: 255,
+      halign: "center",
+    },
+    columnStyles: {
+      0: { cellWidth: 10 },
+      1: { cellWidth: 70 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 30 },
+      4: { cellWidth: 50 },
+    },
+  });
 
-  // Summary
-  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Summary'};
-  const discount = document.getElementById('discount').value;
-  const installFee = getNumeric(document.getElementById('installationFee').value);
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Discount'};
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: discount};
-  rowIdx++;
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Installation Fee'};
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {v: installFee};
-  rowIdx++;
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Total Revenue'};
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {t: 'n', f: 'SUM(E:E) + B' + (rowIdx)};
-  rowIdx++;
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: 'Hardware Cost %'};
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 1})] = {t: 'n', f: 'SUM(E:E) / SUM(E:E) * 100'}; // adjust
-  rowIdx++;
+  y = doc.lastAutoTable.finalY + 10;
 
-  rowIdx += 2;
+  // === SERVICE TABLE ===
+  doc.setFont("helvetica", "bold");
+  doc.text("Service Table", 15, y);
+  y += 3;
 
-  // Summary Box
-  ws[XLSX.utils.encode_cell({r: rowIdx++, c: 0})] = {v: 'Summary Box'};
-  const summaryBoxText = document.getElementById('summaryBox').innerText || 'No summary shown';
-  ws[XLSX.utils.encode_cell({r: rowIdx, c: 0})] = {v: summaryBoxText};
+  const serviceRows = [];
+  document.querySelectorAll("#serviceTable tbody tr").forEach((row, i) => {
+    const service = row.querySelector(".serviceSelect option:checked")?.text || "";
+    const contract = row.querySelector(".contract")?.value || "";
+    const revenue = row.querySelector(".revenue")?.innerText || "";
+    const extRevenue = row.querySelector(".extRevenue")?.innerText || "";
+    serviceRows.push([i + 1, service, contract, revenue, extRevenue]);
+  });
 
-  // Add data validation for dropdowns
-  ws['!dataValidation'] = [];
+  doc.autoTable({
+    startY: y + 3,
+    head: [["No", "Services", "Contract", "Revenue", "Ext Revenue"]],
+    body: serviceRows,
+    theme: "grid",
+    styles: {
+      fontSize: 9,
+      halign: "center",
+      cellPadding: 3,
+    },
+    headStyles: {
+      fillColor: [0, 102, 153],
+      textColor: 255,
+      halign: "center",
+    },
+    columnStyles: {
+      0: { cellWidth: 10 },
+      1: { cellWidth: 70 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 30 },
+      4: { cellWidth: 50 },
+    },
+  });
 
-  // For service cells, starting from row after header
-  const serviceStartRow = 3; // after Hardware Table header and headers
-  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
-    const cellRef = XLSX.utils.encode_cell({r: serviceStartRow + idx, c: 1});
-    ws['!dataValidation'].push({
-      sqref: cellRef,
-      type: 'list',
-      values: serviceOptions
+  y = doc.lastAutoTable.finalY + 10;
+
+  // === SUMMARY ===
+  doc.text("", 15, y);
+  y += 3;
+
+  const discount = document.querySelector("#discount")?.value || "0%";
+  const installFee = document.querySelector("#installationFee")?.value || "0";
+  const totalRevenue = document.querySelector("#totalRevenue")?.innerText || "0";
+  const hardwareCost = document.querySelector("#hardwareCost")?.innerText || "0";
+
+  doc.autoTable({
+    startY: y + 3,
+    head: [["Summary", "", ""]],
+    body: [
+      ["Discount", discount],
+      ["Installation Fee", installFee],
+      ["Total Revenue", totalRevenue],
+      ["Hardware Cost %", hardwareCost],
+    ],
+    theme: "grid",
+styles: { lineWidth: 0 }, // hilangkan semua garis
+bodyStyles: { lineWidth: 0 },
+    headStyles: { fillColor: [0, 102, 153], textColor: 255 },
+    columnStyles: {
+      0: { cellWidth: 80, halign: "left" },  // label di kiri
+    1: { cellWidth: 100, halign: "right" }, // nilai di kanan
+
+    },
+  });
+
+  y = doc.lastAutoTable.finalY + 10;
+
+  // === MONTHLY SUMMARY ===
+  if (document.getElementById("summaryBox").style.display === "block") {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+  
+    y += 8;
+
+    // Calculate summary values
+    let totalRevenueForSummary = 0;
+    document.querySelectorAll("#serviceTable tbody tr").forEach(row => {
+      let revenue = getNumeric(row.querySelector(".revenue").innerText);
+      totalRevenueForSummary += revenue;
     });
-  });
 
-  // For contract
-  document.querySelectorAll('#serviceTable tbody tr').forEach((row, idx) => {
-    const cellRef = XLSX.utils.encode_cell({r: serviceStartRow + idx, c: 2});
-    ws['!dataValidation'].push({
-      sqref: cellRef,
-      type: 'list',
-      values: contractOptions
-    });
-  });
+    const install = getNumeric(document.getElementById("installationFee").value);
+    let top = getNumeric(document.getElementById("topSelect").value);
+    if (top === 0) top = 1;
 
-  // For discount
-  const discountRow = rowIdx - 3; // adjust
-  ws['!dataValidation'].push({
-    sqref: XLSX.utils.encode_cell({r: discountRow, c: 1}),
-    type: 'list',
-    values: ['0', '15', '20', '25']
-  });
+    const firstBase = (totalRevenueForSummary * top) + install;
+    const firstVAT = Math.floor(firstBase * 0.11);
+    const firstPayment = firstBase + firstVAT + 10000;
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Manage Services');
+    const nextBase = totalRevenueForSummary * top;
+    const nextVAT = Math.floor(nextBase * 0.11);
+    const nextPayment = nextBase + nextVAT + 10000;
 
-  // Save
-  XLSX.writeFile(wb, 'manage_services.xlsx');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`First Payment Amount Rp ${formatNumber(firstPayment)}`, 15, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Included,", 20, y);
+    y += 4;
+    doc.text(`* Service (x${top}): Rp ${formatNumber(totalRevenueForSummary * top)}`, 20, y);
+    y += 4;
+    doc.text(`* Installation Fee: Rp ${formatNumber(install)}`, 20, y);
+    y += 4;
+    doc.text(`* VAT 11%: Rp ${formatNumber(firstVAT)}`, 20, y);
+    y += 4;
+    doc.text(`* Stamp: Rp 10.000`, 20, y);
+    y += 8;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`Next Payment Amount Rp ${formatNumber(nextPayment)}`, 15, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Included,", 20, y);
+    y += 4;
+    doc.text(`* Service (x${top}): Rp ${formatNumber(totalRevenueForSummary * top)}`, 20, y);
+    y += 4;
+    doc.text(`* VAT 11%: Rp ${formatNumber(nextVAT)}`, 20, y);
+    y += 4;
+    doc.text(`* Stamp: Rp 10.000`, 20, y);
+  }
+
+  // === FOOTER ===
+  const dateNow = new Date().toLocaleDateString();
+  doc.setFontSize(8);
+  doc.text(`Generated on ${dateNow}`, pageWidth - 40, 285);
+
+  // Save PDF
+  doc.save("manage_services.pdf");
 }
+
 
 </script>
 

@@ -418,14 +418,7 @@
     <tr>
       <td>Discount</td>
       <td>
-        <select id="discount" style="width:160px; padding:6px 10px; border-radius:6px; text-align: right;">
-
-          <option value="0"selected>0%</option>
-           <option value="10">10%</option>
-          <option value="15">15%</option>
-          <option value="20">20%</option>
-          <option value="25" >25%</option>
-        </select>
+        <input type="text" id="discount" value="0%" style="width:160px; padding:6px 10px; border-radius:6px; text-align: right;">
       </td>
     </tr>
     <tr>
@@ -582,7 +575,8 @@ animation: fadeIn 0.5s ease;
   }
 
   function recalcService() {
-    let discount = getNumeric(document.getElementById("discount").value);
+    let discountStr = document.getElementById("discount").value;
+    let discount = getNumeric(discountStr);
 
     document.querySelectorAll("#serviceTable tbody tr").forEach((row, idx) => {
       row.children[0].innerText = idx + 1;
@@ -590,10 +584,10 @@ animation: fadeIn 0.5s ease;
       let contract = getNumeric(row.querySelector(".contract")?.value);
       let baseRevenue = getNumeric(service?.value);
 
-      let revenue = baseRevenue * (1 - discount / 100); 
+      let revenue = baseRevenue * (1 - discount / 100);
       row.querySelector(".revenue").innerText = formatNumber(revenue);
 
-      let ext = revenue * contract; 
+      let ext = revenue * contract;
       row.querySelector(".extRevenue").innerText = formatNumber(ext);
     });
 
@@ -621,18 +615,24 @@ animation: fadeIn 0.5s ease;
     const opt = el.selectedOptions && el.selectedOptions[0];
     const installVal = opt ? getNumeric(opt.dataset.install) : 0;
     document.getElementById("installationFee").value = formatNumber(installVal);
+
+    // No datalist logic needed since it's manual input
     recalcService();
   }
 
   // Input handler
   document.addEventListener("input", e=>{
     if (e.target.classList.contains("qty") || e.target.classList.contains("unitPrice")) {
-      e.target.value = e.target.value.replace(/[^\d]/g,""); 
+      e.target.value = e.target.value.replace(/[^\d]/g,"");
     }
     if(e.target.classList.contains("qty") || e.target.classList.contains("unitPrice")) recalcHardware();
     if(e.target.classList.contains("contract")) recalcService();
     if(e.target.id === "installationFee") recalcSummary();
-    if(e.target.id === "discount") recalcService();
+    if(e.target.id === "discount") {
+      let val = e.target.value.replace(/[^\d]/g, '');
+      e.target.value = val + '%';
+      recalcService();
+    }
   });
 
   $(document).on('change', '.serviceSelect', function(e){
@@ -741,6 +741,8 @@ animation: fadeIn 0.5s ease;
   populateServices(document.querySelector(".serviceSelect"));
   const installInput = document.getElementById("installationFee");
   if (installInput) installInput.value = formatNumber(getNumeric(installInput.value));
+
+  // No initialization needed for discount list since it's manual input
 
   // Auto update kalau TOP berubah
   document.getElementById("topSelect").addEventListener("change", function() {
